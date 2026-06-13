@@ -28,5 +28,8 @@ target
 # Adicionando meu .env
 .env
 
+# Colocando o meu Cargo.lock
+Cargo.lock
+
 # Adicionando o HTML do projeto gerado pelo Claude
 my-playlist-matcher-roadmap.html
