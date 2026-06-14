@@ -1,9 +1,10 @@
 /// Crates usadas no projeto
 use dotenv::dotenv;
-use std::env;
+use reqwest::{Response};
 use serde::Deserialize;
+use std::env;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 /// Struct final, trás cada um dos artistas que são semelhantes com a nossa pesquisa
 /// Representa um artista que a Last.FM retornou sobre a pesquisa
 struct RetornoArtista {
@@ -18,13 +19,13 @@ struct RetornoArtista {
     url_artista: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 /// Trás o retorno de todos os artista que vieram dentro da lista do JSON response da API do Last.FM
 struct RetornoTodosArtistas {
     artist: Vec<RetornoArtista>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 /// Primeira tag que vem no JSON de retorno da Last.FM
 struct RetornoArtistaSimilares {
     similarartists: RetornoTodosArtistas,
@@ -45,15 +46,28 @@ async fn main() {
     );
 
     // Criando o cliente HTTP com reqwest
-    reqwest::Client::new();
+    let client_builder = reqwest::Client::new();
+    let request_sender = client_builder.get(&url_montada)
+    .send()
+    .await
+    .expect("Problemas com a requisição")
+    .json::<RetornoArtistaSimilares>().await.expect("Problemas com a conversão da requisição");
+
+    //let response_getter = serde_json::from_str(request_sender);
+
+    println!("{:?}", request_sender);
 
     // Criando a variavel que chama a API
-    let response = reqwest::get(url_montada) // Chamando a partir da crate reqwest a função get
+    let response = reqwest::get(&url_montada) // Chamando a partir da crate reqwest a função get
         .await // Aguardando o retorno do metodo GET
         .expect("Problemas com a URL") // Trativa de erros de forma simples TODO Trocar na hora de subir versão release
         .text()
         .await
         .expect("Problemas com o JSON de retorno");
 
-    println!("{}", response)
+
+    let response_json_inicial: RetornoArtistaSimilares =
+        serde_json::from_str(&response).expect("Problemas desempacontado o response da API");
+
+    println!("{:?}", response_json_inicial)
 }
